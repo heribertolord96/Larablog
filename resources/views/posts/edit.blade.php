@@ -7,6 +7,15 @@
                 <div class="panel-heading">
                     Editar entrada
                 </div>
+                @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
                 <div class="panel-body" enctype="multipart/form-data">
                     {!! Form::model($post, ['route' => ['posts.update', $post->id], 
                     'method' => 'PUT', 'files' => true]) !!}                        

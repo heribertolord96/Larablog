@@ -7,6 +7,7 @@ use App\Category;
 use App\Tag;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -23,18 +24,34 @@ class PostController extends Controller
     {
         $buscar = $request->buscar;
         if ($buscar == '') {
-         $posts = Post::join('categories','posts.category_id','=','categories.id')
-        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
-        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')   
-        ->where([['status', 'PUBLISHED'],['user_id', auth()->user()->id]])
-        ->paginate(18);
-        return view('posts.index', compact('posts'));
-        }else{
-             $posts = Post::join('categories','posts.category_id','=','categories.id')
-            ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
-            'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')   
-            ->where([['status', 'PUBLISHED'], ['posts.name','like', '%' . $buscar . '%'],['user_id', auth()->user()->id]])
-            ->paginate(18);
+            $posts = Post::join('categories', 'posts.category_id', '=', 'categories.id')
+                ->select(
+                    'categories.name as catname',
+                    'posts.id',
+                    'posts.file',
+                    'posts.name as postname',
+                    'posts.body',
+                    'posts.excerpt',
+                    'posts.category_id',
+                    'categories.slug'
+                )
+                ->where([['status', 'PUBLISHED'], ['user_id', auth()->user()->id]])
+                ->paginate(18);
+            return view('posts.index', compact('posts'));
+        } else {
+            $posts = Post::join('categories', 'posts.category_id', '=', 'categories.id')
+                ->select(
+                    'categories.name as catname',
+                    'posts.id',
+                    'posts.file',
+                    'posts.name as postname',
+                    'posts.body',
+                    'posts.excerpt',
+                    'posts.category_id',
+                    'categories.slug'
+                )
+                ->where([['status', 'PUBLISHED'], ['posts.name', 'like', '%' . $buscar . '%'], ['user_id', auth()->user()->id]])
+                ->paginate(18);
             return view('posts.index', compact('posts'));
         }
     }
@@ -45,7 +62,7 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function create()
-    {//category+tag
+    { //category+tag
         $categories = Category::orderBy('name', 'ASC')->pluck('name', 'id');
         $tags       = Tag::orderBy('name', 'ASC')->get();
         return view('posts.create', compact('categories', 'tags'));
@@ -59,44 +76,34 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        $post = Post::create($request->all());
-        //
-        $fileName = "";
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:720',
+            'status' => 'required',
+            'name' => 'required|max:128',
+            'body' => 'required',
+        ]);
 
-        if($request->file != ""){
-
-            $exploded = explode(',', $request->file);
-
-            $decoded = base64_decode($exploded[1]);
-
-            if(str_contains($exploded[0],'jpeg'))
-                $extension = 'jpg';
-            else
-                $extension = 'png';
-
-            $fileName = time().'.'.$extension;
-            //The name of the directory that we need to create.
-            $directoryName = 'images';
-
-            //Check if the directory already exists.
-            if(!is_dir($directoryName)){
-                //Directory does not exist, so lets create it.
-                mkdir($directoryName, 0777);
-            }
-
-            $path = public_path($directoryName).'/'.$fileName;
-
-            file_put_contents($path,$decoded);
+        $tags = $request->tags;
+        try {
+            DB::beginTransaction();
+            $imageName = time() . '.' . $request->file->extension();
+            $request->file->move(public_path('images'), $imageName);
+            $post = new Post();
+            $post->user_id = $request->user_id;
+            $post->category_id = $request->category_id;
+            $post->name = $request->name;
+            $post->slug = $request->slug;
+            $post->status = $request->status;
+            $post->excerpt = $request->excerpt;
+            $post->body = $request->body;
+            $post->file =   $imageName;
+            $post->save();
+            $post->tags()->attach($tags);
+            DB::commit();
+            return redirect()->route('posts.edit', $post->id)->with('info', 'Entrada creada con éxito');
+        } catch (Exception $e) {
+            DB::rollBack();
         }
-
-        //IMAGE 
-       /* if($request->file('image')){
-            $path = Storage::disk('public')->put('image',  $request->file('file'));
-            $post->fill(['file' => asset($path)])->save();
-        }
-        //TAGS
-        $post->tags()->attach($request->get('tags'));
-        return redirect()->route('posts.edit', $post->id)->with('info', 'Entrada creada con éxito');*/
     }
 
     /**
@@ -107,11 +114,19 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::join('categories','posts.category_id','=','categories.id')
-        ->orderBy('posts.name', 'ASC')
-        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name',
-        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')
-        ->where('posts.id', $id)->first();
+        $post = Post::join('categories', 'posts.category_id', '=', 'categories.id')
+            ->orderBy('posts.name', 'ASC')
+            ->select(
+                'categories.name as catname',
+                'posts.id',
+                'posts.file',
+                'posts.name',
+                'posts.body',
+                'posts.excerpt',
+                'posts.category_id',
+                'categories.slug'
+            )
+            ->where('posts.id', $id)->first();
         return view('posts.show', compact('post'));
     }
 
@@ -138,16 +153,44 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $post = Post::find($id);
-        $post->fill($request->all())->save();
-        //IMAGE 
-        if($request->file('image')){
-            $path = Storage::disk('public')->put('image',  $request->file('file'));
-            $post->fill(['file' => asset($path)])->save();
+        $request->validate([
+            'status' => 'required',
+            'name' => 'required|max:128',
+            'body' => 'required',
+        ]);
+        try{
+            DB::beginTransaction();
+
+            $post = Post::FindOrFail($id);
+            $img = $post->file;
+            $imageName = $img;
+            $directoryName = 'images';
+            if ($img != null && $request->file){
+                $image_path = public_path($directoryName).'/'.$img;
+                if(file_exists($image_path)){
+                    unlink($image_path);
+                }
+                $imageName = time().'.'.$request->file->extension();
+                $request->file->move(public_path('images'), $imageName);
+            }
+            $post->user_id = $request->user_id;
+            $post->category_id = $request->category_id;
+            $post->name = $request->name;
+            $post->slug = $request->slug;
+            $post->status = $request->status;
+            $post->excerpt = $request->excerpt;
+            $post->body = $request->body;
+            $post->file =   $imageName;
+            $post->save();
+
+            //TAGS
+            $post->tags()->sync($request->get('tags'));
+
+            DB::commit();
+            return redirect()->route('posts.edit', $post->id)->with('info', 'Entrada actualizada con éxito');
+        }catch(Exception $e){
+            DB::rollBack();
         }
-        //TAGS
-        $post->tags()->sync($request->get('tags'));
-        return redirect()->route('posts.edit', $post->id)->with('info', 'Entrada actualizada con éxito');
     }
 
     /**

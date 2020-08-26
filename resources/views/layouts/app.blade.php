@@ -84,7 +84,7 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Inicio') }}
+                  Inicio
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse"
                  data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -111,10 +111,10 @@
                                 </li>
                             @endif
                         @else
-                        <li><a href="{{  url('tags') }}">Etiquetas</a></li>
-                        <li><a href="{{  url('categories') }}">Categorías</a></li>      
-                            <li >
-                                <a href="{{ url('posts') }}"> Mis posts
+                        <li  class="nav-item"><a class="nav-link" href="{{  url('tags') }}">Etiquetas</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{  url('categories') }}">Categorías</a></li>      
+                            <li  class="nav-item">
+                                <a class="nav-link" href="{{ url('posts') }}"> Mis posts
                             </a>                       
                         </li>                        
                             <li class="nav-item dropdown">

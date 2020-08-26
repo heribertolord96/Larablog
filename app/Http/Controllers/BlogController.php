@@ -26,18 +26,30 @@ class BlogController extends Controller
             ->orderBy('posts.name', 'ASC')
             ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
             'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')  
-            ->where([['status', 'PUBLISHED'], ['postname','like', '%' . $buscar . '%']])->paginate(18);
+            ->where([['status', 'PUBLISHED'], ['posts.name','like', '%' . $buscar . '%']])->paginate(18);
             return view('blog', compact('posts'));
         }
 
         
     }
-
-    public function category($slug){
-        $category = Category::where('slug', $slug)->pluck('id')->first();
-        $posts = Post::where('category_id', $category)
-            ->orderBy('id', 'DESC')->where('status', 'PUBLISHED')->paginate(3);
+    public function category(Request $request ,$id){
+        $buscar = $request->buscar;
+        if ($buscar == '') {
+        $posts = Post::join('categories','posts.category_id','=','categories.id')
+        ->orderBy('posts.name', 'ASC')
+        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
+        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')       
+        ->where([['status', 'PUBLISHED'],['category_id', $id]])->paginate(18);
         return view('blog', compact('posts'));
+        }else{
+            $posts = Post::join('categories','posts.category_id','=','categories.id')
+        ->orderBy('posts.name', 'ASC')
+        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
+        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')        
+        ->where([['status', 'PUBLISHED'],['category_id', $id],['posts.name','like', '%' . $buscar . '%']])
+        ->paginate(18);
+        return view('blog', compact('posts'));
+        }
     }
 
     public function tag($slug){ 
@@ -48,8 +60,23 @@ class BlogController extends Controller
         return view('blog', compact('posts'));
     }
 
-    public function post($slug){
-    	$post = Post::where('slug', $slug)->first();
-    	return view('blog', compact('post'));
+    
+    public function show($id)
+    {
+        $post = Post::join('categories', 'posts.category_id', '=', 'categories.id')
+            ->orderBy('posts.name', 'ASC')
+            ->select(
+                'categories.name as catname',
+                'posts.id',
+                'posts.file',
+                'posts.name',
+                'posts.body',
+                'posts.excerpt',
+                'posts.category_id',
+                'categories.slug'
+            )
+            ->where('posts.id', $id)->first();
+        return view('posts.show', compact('post'));
     }
+
 }

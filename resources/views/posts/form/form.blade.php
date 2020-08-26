@@ -40,11 +40,6 @@
     {{ Form::textarea('excerpt', null, ['class' => 'form-control', 'rows' => '2']) }}
 </div>
 <div class="form-group">
-	@foreach ($tags as $tag)
-<label >{{form::checkbox('tags[]',$tag->id)}}{{$tag->name}}</label>
-	@endforeach
-</div>
-<div class="form-group">
     {{ Form::label('body', 'Descripción') }}
     {{ Form::textarea('body', null, ['class' => 'form-control']) }}
 </div>

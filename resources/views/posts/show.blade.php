@@ -5,7 +5,7 @@
         <div class="card-header">
             {{ $post->name }}
         </div>
-        <img class="card-img-top" src="{{ $post->file }}" alt="{{ $post->name }}">
+        <img class="card-img-top" style="max-width: 200px; max-height: 200px"  src="../../images/{{ $post->file }}" alt="{{ $post->name }}">
         <div class="card-body">
             {{ $post->body }}
         </div>

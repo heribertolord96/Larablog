@@ -33,7 +33,7 @@
                             <p class="card-text float-right"><small class="text-muted">{{ $post->excerpt }}</small></p>
                           </div>
                           <div class="card-footer">
-                          <a href="{{ route('blog.category', $post->category_id) }}">
+                          <a href="{{ route('category', $post->category_id) }}">
                             <p class="card-text float-right"><small class="text-muted">{{ $post->catname }}</small></p>
                         </a>
                           </div>

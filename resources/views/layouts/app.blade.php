@@ -103,11 +103,11 @@
                         <!-- Authentication Links -->
                         @guest
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                <a class="nav-link" href="{{ route('login') }}">{{ __('Ingresar') }}</a>
                             </li>
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Registrarme') }}</a>
                                 </li>
                             @endif
                         @else
@@ -141,6 +141,32 @@
         </nav>
 
         <main class="py-4">
+            @if (session('info'))
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-8 col-md-offset-2">
+                            <div class="alert alert-success">
+                                {{(session('info'))}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            @if (count($errors))
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <div class="alert alert-success">
+                           <ul>
+                               @foreach ($errors->all() as $error)
+                           <li>{{ $error }}</li>
+                               @endforeach
+                           </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
             @yield('content')
         </main>
     </div>

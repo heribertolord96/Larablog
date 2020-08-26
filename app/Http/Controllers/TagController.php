@@ -40,6 +40,9 @@ class TagController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([           
+            'name' => 'required|max:128',
+        ]);
         $tag = Tag::create($request->all());
         return redirect()->route('tags.edit', $tag->id)->with('info', 'Etiqueta creada con éxito');
     }
@@ -77,6 +80,9 @@ class TagController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([           
+            'name' => 'required|max:128',
+        ]);
         $tag = Tag::find($id);
         $tag->fill($request->all())->save();
         return redirect()->route('tags.edit', $tag->id)->with('info', 'Etiqueta actualizada con éxito');

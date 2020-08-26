@@ -16,12 +16,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'BlogController@blog')->name('blog');
 Route::get('/post/{slug}', 'BlogController@blog')->name('blog');
-Route::get('/post/{slug}', 'BlogController@category')->name('category');
+Route::get('/category/{slug}', 'BlogController@category')->name('category');
 Route::resource('blog', 		'BlogController');
 Auth::routes();
 Route::get('/posts', 'PostController@index')->name('posts');
 Route::get('/post/{slug}', 'PostController@post')->name('post');
-Route::get('/category/{slug}', 'CategoryController@category')->name('category');
 Route::get('/tag/{slug}', 'TagController@tag')->name('tag');
 
 Route::resource('tags', 		'TagController');

@@ -5,6 +5,7 @@ use App\Post;
 use App\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -60,6 +61,10 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([           
+            'name' => 'required|max:128',
+            'body' => 'required',
+        ]);
         $category = Category::create($request->all());
         return redirect()->route('categories.edit', $category->id)
         ->with('info', 'Categoría creada con éxito');
@@ -96,12 +101,25 @@ class CategoryController extends Controller
      * @param  \App\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $id)
+    public function update(Request $request, $id)
     {
-        $category = Category::find($id);
-        $category->fill([$request->all()])->save();
+        $request->validate([           
+            'name' => 'required|max:128',
+            'body' => 'required',
+        ]);
+        try{
+            DB::beginTransaction();
+        $category = Category::FindOrFail($id);
+        $category->name = $request->name;
+        $category->slug = $request->slug;
+        $category->body =   $request->body;
+        $category->save();
+           DB::commit();
         return redirect()->route('categories.edit', $category->id)
         ->with('info', 'Categoría actualizada con éxito');
+    }catch(Exception $e){
+        DB::rollBack();
+    }
     }
 
     /**
@@ -113,6 +131,7 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::find($id)->delete();
-        return back()->with('info', 'Eliminado correctamente');
+        return back()
+        ->with('info', 'Eliminado correctamente');
     }
 }

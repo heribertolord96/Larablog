@@ -19,7 +19,7 @@ class TagController extends Controller
     public function index()
     {
         $tags = Tag::orderBy('id', 'DESC')->paginate();
-        return view('admin.tags.index', compact('tags'));
+        return view('tags.index', compact('tags'));
     }
 
     /**
@@ -53,7 +53,7 @@ class TagController extends Controller
     public function show($id)
     {
         $tag = Tag::find($id);
-        return view('admin.tags.show', compact('tag'));
+        return view('tags.show', compact('tag'));
     }
 
     /**

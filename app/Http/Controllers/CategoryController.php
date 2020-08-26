@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Post;
 use App\Category;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -16,12 +17,31 @@ class CategoryController extends Controller
     {
         $this->middleware('auth');
     }
-    public function index()
+    public function index(Request $request)
     {
         $categories = Category::orderBy('id', 'DESC')->paginate();
         return view('categories.index', compact('categories'));
     }
 
+    public function category(Request $request ,$id){
+        $buscar = $request->buscar;
+        if ($buscar == '') {
+        $posts = Post::join('categories','posts.category_id','=','categories.id')
+        ->orderBy('posts.name', 'ASC')
+        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
+        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')       
+        ->where([['status', 'PUBLISHED'],['category_id', $id]])->paginate(18);
+        return view('blog', compact('posts'));
+        }else{
+            $posts = Post::join('categories','posts.category_id','=','categories.id')
+        ->orderBy('posts.name', 'ASC')
+        ->select('categories.name as catname', 'posts.id', 'posts.file', 'posts.name as postname',
+        'posts.body','posts.excerpt', 'posts.category_id', 'categories.slug')        
+        ->where([['status', 'PUBLISHED'],['category_id', $id],['posts.name','like', '%' . $buscar . '%']])
+        ->paginate(18);
+        return view('blog', compact('posts'));
+        }
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -79,7 +99,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $id)
     {
         $category = Category::find($id);
-        $category->fill($request->all())->save();
+        $category->fill([$request->all()])->save();
         return redirect()->route('categories.edit', $category->id)
         ->with('info', 'Categoría actualizada con éxito');
     }

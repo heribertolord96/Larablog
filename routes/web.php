@@ -13,17 +13,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
+Route::get('/', 'BlogController@blog')->name('blog');
 Auth::routes();
-Route::get('/blog', 'Web\PageController@blog')->name('blog');
+Route::get('/posts', 'PostController@index')->name('posts');
+Route::get('/post/{slug}', 'PostController@post')->name('post');
+Route::get('/category/{slug}', 'CategoryController@category')->name('category');
+Route::get('/tag/{slug}', 'TagController@tag')->name('tag');
 
-Route::get('/post/{slug}', 'Web\PageController@post')->name('post');
-Route::get('/category/{slug}', 'Web\PageController@category')->name('category');
-Route::get('/tag/{slug}', 'Web\PageController@tag')->name('tag');
-
-Route::resource('tags', 		'Admin\TagController');
-Route::resource('categories', 	'Admin\CategoryController');
-Route::resource('posts', 		'Admin\PostController');
+Route::resource('tags', 		'TagController');
+Route::resource('categories', 	'CategoryController');
+Route::resource('posts', 		'PostController');
